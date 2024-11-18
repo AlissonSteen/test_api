@@ -28,31 +28,30 @@ def index():
 
         # Consultar cada IP individualmente
         for ip in ips:
-            try:
-                # Construir URL
-                url = f"https://proxycheck.io/v2/{ip}"
-                params = {
-                    "key": api_key,
-                    "vpn": 1,
-                    "risk": 1
-                }
+    try:
+        # Construir URL
+        url = f"https://proxycheck.io/v2/{ip}"
+        params = {
+            "key": api_key,
+            "vpn": 1,
+            "risk": 1
+        }
 
-                # Realizar requisição
-                response = requests.get(url, params=params)
-                response.raise_for_status()
-                data = response.json()
+        # Realizar requisição
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        data = response.json()
 
-                # Analisar o resultado para o IP
-                if ip in data:
-                    proxy_results.append(data[ip].get("proxy", "Erro"))
-                    vpn_results.append(data[ip].get("vpn", "Erro"))
-                else:
-                    proxy_results.append("Erro")
-                    vpn_results.append("Erro")
-            except Exception as e:
-                proxy_results.append("Erro")
-                vpn_results.append("Erro")
-            time.sleep(0.5)  # Delay para evitar limite de requisições
+        # Acessar resultado com verificação de chave
+        vpn_status = data.get(ip, {}).get("vpn", "Não Disponível")
+        proxy_status = data.get(ip, {}).get("proxy", "Não Disponível")
+
+        proxy_results.append(proxy_status)
+        vpn_results.append(vpn_status)
+    except Exception as e:
+        proxy_results.append("Erro")
+        vpn_results.append("Erro")
+    time.sleep(0.5)  # Delay para evitar limite de requisições
 
         # Adicionar resultados ao DataFrame
         df['Resultado API'] = pd.Series(proxy_results)
