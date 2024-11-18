@@ -10,14 +10,19 @@ app = Flask(__name__)
 def index():
     if request.method == 'POST':
         file = request.files['file']
-        column = request.form['column']
+        column = int(request.form['column'])  # Receber a coluna como número
         api_key = request.form['api_key']
 
         # Carregar a planilha
         df = pd.read_excel(file)
 
-        # Obter valores da coluna
-        ips = df[column].dropna().tolist()
+        # Verificar se a coluna está dentro do intervalo de colunas
+        if column < 1 or column > len(df.columns):
+            return "Número de coluna inválido!"
+
+        # Acessar a coluna correta usando iloc (baseado no índice)
+        ips = df.iloc[:, column - 1].dropna().tolist()  # Ajuste aqui para usar o índice correto (coluna-1)
+
         proxy_results = []
         vpn_results = []
 
@@ -27,9 +32,9 @@ def index():
                 # Construir URL
                 url = f"https://proxycheck.io/v2/{ip}"
                 params = {
-                    "key": api_key,  # Chave API
-                    "vpn": 1,  # Incluir informações de VPN
-                    "risk": 1  # Incluir nível de risco
+                    "key": api_key,
+                    "vpn": 1,
+                    "risk": 1
                 }
 
                 # Realizar requisição
@@ -61,7 +66,6 @@ def index():
         return redirect(url_for('download_file', filename=output_filename))
 
     return render_template('index.html')
-
 
 @app.route('/download/<filename>')
 def download_file(filename):
