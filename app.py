@@ -24,8 +24,8 @@ def index():
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
         file.save(file_path)
 
-        # Carregar a planilha preservando o cabeçalho
-        df = pd.read_excel(file_path)
+        # Carregar a planilha preservando o cabeçalho e forçando o uso do openpyxl
+        df = pd.read_excel(file_path, engine='openpyxl')
 
         # Verificar se a coluna é válida
         if column < 1 or column > len(df.columns):
@@ -95,8 +95,8 @@ def filtro():
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
         file.save(file_path)
 
-        # Carregar a planilha com os resultados
-        df = pd.read_excel(file_path)
+        # Carregar a planilha com os resultados e forçar o uso do openpyxl
+        df = pd.read_excel(file_path, engine='openpyxl')
 
         # Filtrar os dados onde "PROXY" e "VPN" são "yes"
         filtered_df = df[(df['PROXY'] == 'yes') & (df['VPN'] == 'yes')]
