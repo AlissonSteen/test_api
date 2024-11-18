@@ -24,8 +24,8 @@ def index():
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
         file.save(file_path)
 
-        # Carregar a planilha
-        df = pd.read_excel(file_path)
+        # Carregar a planilha sem tratar a primeira linha como cabeçalho
+        df = pd.read_excel(file_path, header=None)
 
         # Verificar se a coluna é válida
         if column < 1 or column > len(df.columns):
@@ -84,6 +84,32 @@ def index():
         return redirect(url_for('download_file', filename=output_filename))
 
     return render_template('index.html')
+
+@app.route('/filtro', methods=['GET', 'POST'])
+def filtro():
+    if request.method == 'POST':
+        file = request.files['file']  # Arquivo enviado pelo usuário com os resultados
+        if not os.path.exists(app.config['UPLOAD_FOLDER']):
+            os.makedirs(app.config['UPLOAD_FOLDER'])
+        
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+        file.save(file_path)
+
+        # Carregar a planilha com os resultados
+        df = pd.read_excel(file_path)
+
+        # Filtrar os dados onde "Resultado API" e "VPN" são "yes"
+        filtered_df = df[(df['Resultado API'] == 'yes') & (df['VPN'] == 'yes')]
+
+        # Salvar a nova planilha filtrada
+        filtered_filename = 'resultado_filtrado.xlsx'
+        filtered_path = os.path.join(app.config['UPLOAD_FOLDER'], filtered_filename)
+        filtered_df.to_excel(filtered_path, index=False)
+
+        # Disponibilizar para download a planilha filtrada
+        return redirect(url_for('download_file', filename=filtered_filename))
+
+    return render_template('filtro.html')
 
 @app.route('/download/<filename>')
 def download_file(filename):
