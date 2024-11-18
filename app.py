@@ -53,9 +53,13 @@ def index():
                 response.raise_for_status()
                 data = response.json()
 
-                # Verificar o resultado e obter valores para "proxy" e "vpn"
-                vpn_status = data.get(ip, {}).get("vpn", "Não Disponível")
-                proxy_status = data.get(ip, {}).get("proxy", "Não Disponível")
+                # Acessar resultado e verificar o valor de "proxy" e "vpn"
+                proxy_status = data.get(ip, {}).get("proxy", "no")  # Default para 'no' se não encontrado
+                vpn_status = data.get(ip, {}).get("vpn", "no")  # Default para 'no' se não encontrado
+
+                # Se o proxy for 'no', o vpn também é 'no' na maioria dos casos
+                if proxy_status == "no":
+                    vpn_status = "no"
 
                 # Armazenar os resultados
                 proxy_results.append(proxy_status)
@@ -68,7 +72,7 @@ def index():
             time.sleep(0.5)  # Delay para evitar limite de requisições
 
         # Adicionar os resultados no DataFrame
-        df['PROXY'] = pd.Series(proxy_results)
+        df['Resultado API'] = pd.Series(proxy_results)
         df['VPN'] = pd.Series(vpn_results)
 
         # Salvar o arquivo com os resultados
