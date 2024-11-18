@@ -3,21 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consulta ProxyCheck.io</title>
+    <title>Consulta Proxy/VPN</title>
 </head>
 <body>
-    <h1>Consulta IPs na ProxyCheck.io</h1>
-    <form method="POST" enctype="multipart/form-data">
-        <label for="file">Selecione o arquivo Excel:</label>
+    <h1>Consulta Proxy e VPN</h1>
+    <form action="/" method="post" enctype="multipart/form-data">
+        <label for="file">Escolha a planilha:</label>
         <input type="file" name="file" required><br><br>
+        
+        <label for="column">Número da coluna com IPs:</label>
+        <input type="number" name="column" required><br><br>
 
-        <label for="column">Selecione a coluna de IPs:</label>
-        <input type="text" name="column" required><br><br>
-
-        <label for="api_key">Digite a sua chave da API:</label>
+        <label for="api_key">Chave da API:</label>
         <input type="text" name="api_key" required><br><br>
 
-        <button type="submit">Consultar</button>
+        <input type="submit" value="Enviar">
     </form>
+    <br>
+    <a href="/filtro">Filtrar Planilha</a>
 </body>
 </html>
