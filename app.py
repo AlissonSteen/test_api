@@ -24,6 +24,9 @@ def index():
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
         file.save(file_path)
 
+        # Carregar a planilha preservando o cabeçalho
+        df = pd.read_excel(file_path)
+
         # Verificar se a coluna é válida
         if column < 1 or column > len(df.columns):
             return "Número de coluna inválido!"
@@ -95,8 +98,8 @@ def filtro():
         # Carregar a planilha com os resultados
         df = pd.read_excel(file_path)
 
-        # Filtrar os dados onde "Resultado API" e "VPN" são "yes"
-        filtered_df = df[(df['Resultado API'] == 'yes') & (df['VPN'] == 'yes')]
+        # Filtrar os dados onde "PROXY" e "VPN" são "yes"
+        filtered_df = df[(df['PROXY'] == 'yes') & (df['VPN'] == 'yes')]
 
         # Salvar a nova planilha filtrada
         filtered_filename = 'resultado_filtrado.xlsx'
