@@ -24,9 +24,6 @@ def index():
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
         file.save(file_path)
 
-        # Carregar a planilha sem tratar a primeira linha como cabeçalho
-        df = pd.read_excel(file_path, header=None)
-
         # Verificar se a coluna é válida
         if column < 1 or column > len(df.columns):
             return "Número de coluna inválido!"
