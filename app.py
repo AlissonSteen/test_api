@@ -68,7 +68,7 @@ def index():
             time.sleep(0.5)  # Delay para evitar limite de requisições
 
         # Adicionar os resultados no DataFrame
-        df['Resultado API'] = pd.Series(proxy_results)
+        df['PROXY'] = pd.Series(proxy_results)
         df['VPN'] = pd.Series(vpn_results)
 
         # Salvar o arquivo com os resultados
