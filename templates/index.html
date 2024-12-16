@@ -1,25 +1,62 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consulta Proxy/VPN</title>
+    <title>Consulta de IP</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" href="https://cdn.icons8.com/color/48/000000/upload.png"> <!-- Ícone de upload -->
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script> <!-- Ícones FontAwesome -->
 </head>
 <body>
-    <h1>Consulta Proxy e VPN</h1>
-    <form action="/" method="post" enctype="multipart/form-data">
-        <label for="file">Escolha a planilha:</label>
-        <input type="file" name="file" required><br><br>
-        
-        <label for="column">Número da coluna com IPs:</label>
-        <input type="number" name="column" required><br><br>
+    <div class="container">
+        <!-- Div externa para centralização -->
+        <div class="form-container shadow-sm p-4 rounded">
+            <h1 class="text-center">Consulta de IP</h1>
+            <form action="/" method="POST" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="file" class="form-label">Escolher Arquivo Excel</label>
+                    <input type="file" name="file" id="file" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="column" class="form-label">Número da Coluna</label>
+                    <input type="number" name="column" id="column" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="api_key" class="form-label">Chave da API</label>
+                    <input type="text" name="api_key" id="api_key" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-upload"></i> Enviar
+                </button>
+            </form>
 
-        <label for="api_key">Chave da API:</label>
-        <input type="text" name="api_key" required><br><br>
+            <!-- Barra de Progresso -->
+            <div class="progress mt-4" id="progress-container">
+                <div class="progress-bar" id="progress-bar" style="width: 0%;"></div>
+            </div>
+            <p class="text-center mt-2" id="progress-message">Aguardando...</p>
 
-        <input type="submit" value="Enviar">
-    </form>
-    <br>
-    <a href="/filtro">Filtrar Planilha</a>
+            <a href="/filtro" class="btn btn-secondary w-100 mt-3">
+                <i class="fas fa-filter"></i> Filtrar Planilha
+            </a>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.min.js"></script>
+    <script>
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+        socket.on('progress', function(data) {
+            var progress = data.progress;
+            var message = data.message;
+
+            // Exibe a barra de progresso
+            document.getElementById('progress-container').style.display = 'block';
+            document.getElementById('progress-bar').style.width = progress + '%';
+            document.getElementById('progress-message').innerText = message;
+        });
+    </script>
 </body>
 </html>

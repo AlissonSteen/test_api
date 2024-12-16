@@ -1,0 +1,83 @@
+/* Estilo geral para a página */
+body {
+    background-color: #e0f7fa; /* Fundo azul claro */
+    display: flex;
+    justify-content: center; /* Centraliza horizontalmente */
+    align-items: center; /* Centraliza verticalmente */
+    height: 100vh; /* Altura total da tela */
+    margin: 0;
+    font-family: Arial, sans-serif; /* Definindo uma fonte mais amigável */
+    flex-direction: column; /* Garante que o conteúdo será centralizado também no eixo vertical */
+}
+
+/* Div centralizada, compacta e com sombra projetada para a direita inferior */
+.card {
+    background-color: #ffffff; /* Fundo branco para os formulários */
+    padding: 2rem; /* Espaçamento interno */
+    border-radius: 1rem; /* Bordas arredondadas */
+    border: 1px solid #dee2e6; /* Borda clara */
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* Sombra suave */
+    width: 100%;
+    max-width: 450px; /* Largura máxima ajustada */
+    box-sizing: border-box;
+    margin: 0 20px; /* Margem nas laterais */
+    display: flex;
+    flex-direction: column; /* Garante que os elementos dentro da div sejam dispostos em coluna */
+    align-items: center; /* Centraliza os itens horizontalmente dentro da div */
+    justify-content: center; /* Centraliza os itens verticalmente dentro da div */
+}
+
+/* Estilo do título */
+h1 {
+    font-size: 1.75rem; /* Tamanho do título ajustado */
+    margin-bottom: 1.5rem;
+    text-align: center;
+    color: #00796b; /* Cor do título */
+}
+
+/* Estilo para os botões */
+button, .btn-link {
+    font-size: 1rem;
+    padding: 0.75rem;
+    width: 100%; /* Botão ocupa toda a largura */
+    border-radius: 5px;
+    transition: background-color 0.3s ease, transform 0.3s ease; /* Transição suave */
+}
+
+/* Efeitos de hover e active para os botões */
+button:hover, .btn-link:hover {
+    background-color: #004d40; /* Cor mais escura ao passar o mouse */
+    color: white;
+}
+
+button:active, .btn-link:active {
+    transform: scale(0.98); /* Leve redução no tamanho ao clicar */
+}
+
+/* Ajuste para os campos do formulário */
+form div {
+    margin-bottom: 1rem;
+}
+
+input[type="file"], input[type="number"], input[type="text"] {
+    width: 100%;
+    padding: 0.75rem; /* Aumenta o padding para maior conforto visual */
+    border-radius: 5px; /* Bordas arredondadas para os campos */
+    border: 1px solid #ddd; /* Borda mais suave */
+}
+
+input[type="file"]:focus, input[type="number"]:focus, input[type="text"]:focus {
+    border-color: #00796b; /* Cor da borda ao focar */
+    outline: none; /* Remove o outline padrão */
+}
+
+/* Responsividade - ajuste para dispositivos móveis */
+@media (max-width: 576px) {
+    .card {
+        margin: 0 15px;  /* Adiciona uma margem de 15px nas laterais */
+    }
+
+    h1 {
+        font-size: 1.5rem; /* Ajuste do tamanho do título para telas menores */
+    }
+}

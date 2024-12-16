@@ -1,87 +1,77 @@
 import os
-import time
-import requests
 import pandas as pd
-from flask import Flask, render_template, request, send_from_directory, redirect, url_for
+import requests
+from flask import Flask, request, render_template, send_file, redirect, url_for, send_from_directory
+from flask_socketio import SocketIO
 
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = 'uploads'
+socketio = SocketIO(app)
 
-# Configurações do app
-UPLOAD_FOLDER = 'uploads'  # Diretório para salvar arquivos temporários
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
+# Rota inicial
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
-        file = request.files['file']  # Arquivo enviado pelo usuário
-        column = int(request.form['column'])  # Número da coluna selecionada (começa de 1)
-        api_key = request.form['api_key']  # Chave da API
+        file = request.files['file']
+        column = int(request.form['column'])
+        api_key = request.form['api_key']
 
-        # Salvar o arquivo no diretório temporário
-        if not os.path.exists(app.config['UPLOAD_FOLDER']):
-            os.makedirs(app.config['UPLOAD_FOLDER'])
-        
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+        filename = file.filename
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(file_path)
 
-        # Carregar a planilha preservando o cabeçalho e forçando o uso do openpyxl
-        df = pd.read_excel(file_path, engine='openpyxl')
+        try:
+            df = pd.read_excel(file_path, engine='openpyxl')
+        except Exception as e:
+            return f"Erro ao abrir o arquivo: {e}"
 
-        # Verificar se a coluna é válida
         if column < 1 or column > len(df.columns):
-            return "Número de coluna inválido!"
+            return "Número de coluna inválido."
 
-        # Acessar a coluna selecionada usando o índice (coluna-1)
-        ips = df.iloc[:, column - 1].dropna().tolist()  # Remover valores NaN
+        ips = df.iloc[:, column - 1]
+        results = []
+        max_queries = 1000
 
-        proxy_results = []
-        vpn_results = []
+        for i, ip in enumerate(ips, start=1):
+            if i > max_queries:
+                results.append("Consulta não realizada (limite de 1000 atingido)")
+                continue
 
-        # Consultar cada IP individualmente na API
-        for ip in ips:
+            # Emite progresso a cada IP
+            socketio.emit('progress', {
+                'message': f"Lendo IP {i} de {len(ips)}...",
+                'progress': int((i / len(ips)) * 100)
+            })
+            socketio.sleep(0.1)
+
             try:
-                # Construir URL da API
-                url = f"https://proxycheck.io/v2/{ip}"
-                params = {
-                    "key": api_key,
-                    "vpn": 1,
-                    "risk": 1
-                }
+                response = requests.get(f"https://proxycheck.io/v2/{ip}?key={api_key}&vpn=1&asn=0")
+                result = response.json()
+                proxy_status = result.get(ip, {}).get("proxy", "Não disponível")
+                vpn_status = result.get(ip, {}).get("vpn", "Não disponível")
 
-                # Realizar requisição para a API
-                response = requests.get(url, params=params)
-                response.raise_for_status()
-                data = response.json()
-
-                # Acessar resultado e verificar o valor de "proxy" e "vpn"
-                proxy_status = data.get(ip, {}).get("proxy", "no")  # Default para 'no' se não encontrado
-                vpn_status = data.get(ip, {}).get("vpn", "no")  # Default para 'no' se não encontrado
-
-                # Se o proxy for 'no', o vpn também é 'no' na maioria dos casos
-                if proxy_status == "no":
+                if proxy_status == "yes":
+                    vpn_status = "yes"
+                else:
                     vpn_status = "no"
+            except Exception:
+                proxy_status = "Erro na consulta"
+                vpn_status = "Erro na consulta"
 
-                # Armazenar os resultados
-                proxy_results.append(proxy_status)
-                vpn_results.append(vpn_status)
+            results.append((proxy_status, vpn_status))
 
-            except Exception as e:
-                proxy_results.append("Erro")
-                vpn_results.append("Erro")
-            
-            time.sleep(0.5)  # Delay para evitar limite de requisições
+        df['PROXY'], df['VPN'] = zip(*results)
 
-        # Adicionar os resultados no DataFrame
-        df['PROXY'] = pd.Series(proxy_results)
-        df['VPN'] = pd.Series(vpn_results)
+        result_file = os.path.join(app.config['UPLOAD_FOLDER'], 'resultado.xlsx')
+        df.to_excel(result_file, index=False, engine='openpyxl')
 
-        # Salvar o arquivo com os resultados
-        output_filename = 'resultado.xlsx'
-        output_path = os.path.join(app.config['UPLOAD_FOLDER'], output_filename)
-        df.to_excel(output_path, index=False)
+        # Emite o progresso final
+        socketio.emit('progress', {
+            'message': "Processo concluído!",
+            'progress': 100
+        })
 
-        # Disponibilizar para download
-        return redirect(url_for('download_file', filename=output_filename))
+        return send_file(result_file, as_attachment=True)
 
     return render_template('index.html')
 
@@ -95,8 +85,8 @@ def filtro():
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
         file.save(file_path)
 
-        # Carregar a planilha com os resultados e forçar o uso do openpyxl
-        df = pd.read_excel(file_path, engine='openpyxl')
+        # Carregar a planilha com os resultados
+        df = pd.read_excel(file_path)
 
         # Filtrar os dados onde "PROXY" e "VPN" são "yes"
         filtered_df = df[(df['PROXY'] == 'yes') & (df['VPN'] == 'yes')]
@@ -111,10 +101,13 @@ def filtro():
 
     return render_template('filtro.html')
 
+
 @app.route('/download/<filename>')
 def download_file(filename):
     # Retornar o arquivo para o download
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
 
+
+# Rodar o app
 if __name__ == '__main__':
-    app.run(debug=True)
+    socketio.run(app, debug=True)
